@@ -1,0 +1,1256 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>D2C Brand — Executive Intelligence Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 24px;
+  }
+
+  :root {
+    --bg-main:       #F3F4F6;
+    --card-bg:       #FFFFFF;
+    --navy-dark:     #0F172A;
+    --navy-mid:      #1E293B;
+    --text-main:     #111827;
+    --text-sub:      #6B7280;
+    --border-light:  #E5E7EB;
+    --indigo:        #6366F1;
+    --indigo-lt:     #818CF8;
+    --teal:          #14B8A6;
+    --emerald:       #10B981;
+    --amber:         #F59E0B;
+    --rose:          #F43F5E;
+    --purple:        #8B5CF6;
+    --shadow-sm:     0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md:     0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg:     0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius:        16px;
+    --radius-sm:     10px;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── MOBILE OVERLAY ── */
+  .mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 90;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .mobile-overlay.open { display: block; opacity: 1; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 250px;
+    min-height: 100vh;
+    background: var(--navy-dark);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 100;
+    padding-bottom: 24px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-lg);
+  }
+  .sidebar-brand {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #4F46E5, #0EA5E9);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+    flex-shrink: 0;
+  }
+  .brand-icon svg { width: 24px; height: 24px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .brand-text { display: flex; flex-direction: column; }
+  .brand-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .brand-sub { font-size: 11px; color: #94A3B8; margin-top: 3px; font-weight: 500; letter-spacing: 0.5px; }
+
+  .sidebar-nav { padding: 24px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .nav-label {
+    font-size: 11px; font-weight: 800; letter-spacing: 1.2px;
+    text-transform: uppercase; color: #64748B;
+    padding: 12px 12px 8px; margin-top: 8px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 10px; color: #94A3B8;
+    font-size: 13.5px; font-weight: 600; cursor: pointer;
+    transition: all .2s; text-decoration: none;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.05); color: #E2E8F0; }
+  .nav-item.active { 
+    background: rgba(99, 102, 241, 0.15); color: #fff; 
+    border-left: 3px solid var(--indigo);
+  }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.8; }
+  .nav-item.active svg { opacity: 1; color: var(--indigo-lt); }
+
+  .sidebar-footer { padding: 16px 24px 0; border-top: 1px solid rgba(255,255,255,.05); }
+  .data-badge {
+    background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.2);
+    border-radius: 8px; padding: 10px 12px; font-size: 11.5px; color: var(--emerald);
+    display: flex; align-items: center; gap: 8px; font-weight: 600;
+  }
+  .data-badge::before {
+    content:''; width:8px; height:8px; background: var(--emerald);
+    border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px var(--emerald);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: 250px; flex: 1; display: flex; flex-direction: column;
+    min-width: 0; transition: margin-left 0.3s ease;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--card-bg);
+    background-image: radial-gradient(#F3F4F6 1px, transparent 1px);
+    background-size: 20px 20px;
+    padding: 20px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border-light);
+    position: sticky; top: 0; z-index: 80;
+    box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+  }
+  .hamburger {
+    display: none; background: none; border: none; color: var(--text-main);
+    font-size: 24px; cursor: pointer; margin-right: 16px;
+  }
+  .topbar-left { display: flex; align-items: center; }
+  .header-icon-box {
+    width: 48px; height: 48px; background: #EEF2FF;
+    color: var(--indigo); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 18px; box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.2);
+  }
+  .header-icon-box svg { width: 26px; height: 26px; stroke-width: 2; }
+  .topbar-left h1 { font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -.4px; }
+  .topbar-left p { font-size: 13.5px; color: var(--text-sub); margin-top: 4px; font-weight: 500; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .period-badge {
+    background: #fff; border: 1px solid #E5E7EB; color: var(--text-sub);
+    padding: 8px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700;
+    box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 6px;
+  }
+  .period-badge svg { width: 14px; height: 14px; color: var(--indigo); }
+  .user-profile {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid #fff; box-shadow: var(--shadow-md); overflow: hidden;
+    cursor: pointer;
+  }
+  .user-profile img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ── CONTENT BODY ── */
+  .content { padding: 32px 40px 60px; max-width: 1440px; margin: 0 auto; width: 100%; }
+  .scroll-section { scroll-margin-top: 110px; } 
+
+  /* ── EXECUTIVE BANNER ── */
+  .executive-banner {
+    background-image: linear-gradient(105deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.7) 100%), url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop');
+    background-size: cover; background-position: center 30%;
+    border-radius: var(--radius); padding: 36px 40px; margin-bottom: 32px;
+    color: #fff; box-shadow: var(--shadow-md);
+    display: flex; align-items: center; position: relative; overflow: hidden;
+  }
+  .executive-banner::after {
+    content: ''; position: absolute; right: 0; bottom: 0; width: 300px; height: 100%;
+    background: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.05)" stroke-width="20" fill="none"/></svg>') repeat;
+    opacity: 0.5; pointer-events: none;
+  }
+  .banner-content { position: relative; z-index: 2; max-width: 600px; }
+  .banner-tag {
+    background: rgba(99, 102, 241, 0.3); backdrop-filter: blur(8px);
+    border: 1px solid rgba(165, 180, 252, 0.3); padding: 6px 14px;
+    border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .banner-tag svg { width: 12px; height: 12px; }
+  .banner-content h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .banner-content p { color: #CBD5E1; font-size: 15px; line-height: 1.6; }
+
+  /* ── SECTION HEADERS ── */
+  .section-header { display: flex; align-items: center; gap: 12px; margin: 32px 0 20px; }
+  .section-header:first-child { margin-top: 0; }
+  .section-header h2 { font-size: 17px; font-weight: 800; color: var(--text-main); letter-spacing: -.2px; }
+  .section-divider { flex: 1; height: 1px; background: var(--border-light); }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .kpi-card {
+    background: var(--card-bg); border-radius: var(--radius); padding: 22px;
+    box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
+    position: relative; overflow: hidden; transition: transform .2s, box-shadow .2s;
+  }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px;
+    border-radius: var(--radius) 0 0 var(--radius);
+  }
+  .kpi-card.indigo::before  { background: var(--indigo); }
+  .kpi-card.emerald::before { background: var(--emerald); }
+  .kpi-card.amber::before   { background: var(--amber); }
+  .kpi-card.rose::before    { background: var(--rose); }
+  .kpi-card.purple::before  { background: var(--purple); }
+  .kpi-card.teal::before    { background: var(--teal); }
+  .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .kpi-label { font-size: 11.5px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--text-sub); margin-bottom: 10px; }
+  .kpi-value { font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -.5px; line-height: 1.2; }
+  .kpi-value.small { font-size: 16px; line-height: 1.4; }
+  .kpi-sub { font-size: 11.5px; color: var(--text-sub); margin-top: 8px; display: flex; align-items: center; gap: 4px; font-weight: 500; }
+  .kpi-icon { position: absolute; bottom: -8px; right: -8px; opacity: .04; width: 80px; height: 80px; color: var(--text-main); }
+  .kpi-icon svg { width: 100%; height: 100%; }
+
+  /* ── LAYOUT GRIDS ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+  .three-col { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+
+  /* ── CARDS ── */
+  .card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); display: flex; flex-direction: column; }
+  .card-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border-light); display: flex; align-items: flex-start; justify-content: space-between; }
+  .card-title { font-size: 15px; font-weight: 800; color: var(--text-main); }
+  .card-subtitle { font-size: 12.5px; color: var(--text-sub); margin-top: 4px; font-weight: 500;}
+  .card-body { padding: 24px; flex: 1; }
+  .card-tag { font-size: 11.5px; padding: 4px 12px; border-radius: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
+  .tag-indigo { background: #EEF2FF; color: var(--indigo); border: 1px solid #C7D2FE;}
+  .tag-emerald { background: #ECFDF5; color: var(--emerald); border: 1px solid #A7F3D0;}
+  .tag-amber { background: #FFFBEB; color: var(--amber); border: 1px solid #FDE68A;}
+
+  /* ── TABLE ── */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    text-align: left; font-size: 11.5px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--text-sub);
+    padding: 14px 16px; background: #F8FAFC; border-bottom: 2px solid var(--border-light); cursor: pointer; white-space: nowrap; transition: background .2s;
+  }
+  .data-table th:hover { background: #F1F5F9; color: var(--indigo); }
+  .data-table th.sort-asc::after  { content: ' ↑'; color: var(--indigo); }
+  .data-table th.sort-desc::after { content: ' ↓'; color: var(--indigo); }
+  .data-table td { padding: 16px; font-size: 13.5px; font-weight: 600; color: var(--text-main); border-bottom: 1px solid var(--border-light); white-space: nowrap; }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: #F8FAFC; }
+  .td-num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .td-badge { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+  .cat-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
+  /* ── BAR CHART ── */
+  .bar-chart { display: flex; flex-direction: column; gap: 16px; }
+  .bar-row { display: flex; align-items: center; gap: 14px; }
+  .bar-label { width: 140px; font-size: 13px; color: var(--text-main); font-weight: 700; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 10px; background: var(--bg-main); border-radius: 99px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);}
+  .bar-fill { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+  .bar-num { width: 80px; font-size: 13px; font-weight: 800; color: var(--text-sub); text-align: right; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+  .rank { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 6px; font-size: 11.5px; font-weight: 800; flex-shrink: 0; }
+  .rank-1 { background: #FEF3C7; color: #D97706; }
+  .rank-2 { background: #F1F5F9; color: #64748B; }
+  .rank-3 { background: #FFEDD5; color: #C2410C; }
+  .rank-other { background: var(--bg-main); color: var(--text-sub); }
+
+  /* ── CHANNEL TABLE ── */
+  .channel-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px dashed var(--border-light); gap: 16px; }
+  .channel-item:last-child { border-bottom: none; }
+  .channel-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.05);}
+  .channel-meta { flex: 1; min-width: 0; }
+  .channel-name { font-size: 14.5px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;}
+  .channel-orders { font-size: 12px; color: var(--text-sub); margin-top: 4px; font-weight: 500;}
+  .channel-right { text-align: right; flex-shrink: 0; }
+  .channel-rev { font-size: 16px; font-weight: 800; color: var(--text-main); font-variant-numeric: tabular-nums; }
+  .channel-disc { font-size: 12px; color: var(--text-sub); margin-top: 4px; font-weight: 600;}
+  .disc-bar { height: 4px; border-radius: 99px; margin-top: 8px; }
+  .best-badge { font-size: 10px; font-weight: 800; padding: 2px 8px; background: #ECFDF5; color: var(--emerald); border: 1px solid #A7F3D0; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* ── SPARKLINE CHART ── */
+  .month-labels { display: flex; justify-content: space-between; padding: 8px 6px 0; font-size: 11.5px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;}
+
+  /* ── SEGMENT BARS ── */
+  .seg-row { display: flex; flex-direction: column; gap: 8px; padding: 16px 0; border-bottom: 1px dashed var(--border-light); }
+  .seg-row:last-child { border-bottom: none; }
+  .seg-top { display: flex; align-items: center; justify-content: space-between; }
+  .seg-name { font-size: 14.5px; font-weight: 800; }
+  .seg-rev  { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text-main); }
+  .seg-meta { font-size: 12.5px; color: var(--text-sub); font-weight: 600;}
+
+  /* ── MINI STATS ── */
+  .mini-stats { display: flex; gap: 0; border-top: 1px solid var(--border-light); background: #F8FAFC; border-radius: 0 0 var(--radius) var(--radius);}
+  .mini-stat { flex: 1; padding: 16px; text-align: center; border-right: 1px solid var(--border-light); }
+  .mini-stat:last-child { border-right: none; }
+  .mini-stat-val { font-size: 18px; font-weight: 800; color: var(--text-main); }
+  .mini-stat-lbl { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-sub); margin-top: 6px; }
+
+  /* ── FULL INSIGHT CARD ── */
+  .biz-insights {
+    background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-mid) 100%);
+    border-radius: var(--radius); padding: 32px; margin-bottom: 24px; position: relative; overflow: hidden; box-shadow: var(--shadow-lg);
+  }
+  .biz-insights::before { content: ''; position: absolute; top: -100px; right: -50px; width: 300px; height: 300px; background: var(--indigo); opacity: .15; border-radius: 50%; filter: blur(40px); }
+  .biz-insights-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; position: relative; z-index: 2; }
+  .biz-insights-header h2 { font-size: 18px; font-weight: 800; color: #fff; }
+  .biz-insights-header span { font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; color: #CBD5E1; background: rgba(255,255,255,.1); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,.15); }
+  .insights-bullets { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; position: relative; z-index: 2;}
+  .ins-bullet { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 20px; backdrop-filter: blur(10px); }
+  .ins-bullet-label { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #94A3B8; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .ins-bullet-val { font-size: 16px; font-weight: 800; color: #F8FAFC; margin-bottom: 6px;}
+  .ins-bullet-note { font-size: 13px; color: #CBD5E1; line-height: 1.6; }
+  .ins-accent { color: #818CF8; }
+
+  /* Discount Analysis Grid */
+  .discount-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
+  .discount-card { text-align: center; padding: 20px 12px; background: #F8FAFC; border-radius: 12px; border: 1px solid var(--border-light); transition: transform 0.2s, box-shadow 0.2s;}
+  .discount-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); background: #fff;}
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1200px) { .insights-bullets { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 900px) {
+    .hamburger { display: block; }
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .topbar { padding: 16px 20px; }
+    .content { padding: 24px 20px 40px; }
+    .executive-banner { padding: 28px 24px; }
+    .two-col, .three-col { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .insights-bullets { grid-template-columns: 1fr; }
+    .topbar-right .period-badge { display: none; }
+    .topbar-left h1 { font-size: 18px; }
+    .topbar-left p { display: none; }
+    .header-icon-box { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" id="mobileOverlay"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <!-- Sophisticated Geometric BI Logo -->
+      <svg viewBox="0 0 24 24">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">NexData BI</div>
+      <div class="brand-sub">ENTERPRISE EDITION</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Dashboard</div>
+    <a class="nav-item active" href="#section-overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Overview
+    </a>
+    <a class="nav-item" href="#section-revenue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Revenue
+    </a>
+    <a class="nav-item" href="#section-products">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+      Products
+    </a>
+    <a class="nav-item" href="#section-customers">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      Customers
+    </a>
+
+    <div class="nav-label">Analysis</div>
+    <a class="nav-item" href="#section-channels">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Channels
+    </a>
+    <a class="nav-item" href="#section-discounts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Discounts
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="data-badge">Live Data · FY 2024</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" id="menuToggle">☰</button>
+      <div class="header-icon-box">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+      </div>
+      <div>
+        <h1>Business Intelligence Dashboard</h1>
+        <p>D2C Brand — Sales, Product & Channel Performance</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="period-badge">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        Jan–Dec 2024
+      </div>
+      <div class="user-profile" title="Executive Profile">
+        <!-- Professional Corporate Avatar -->
+        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop" alt="Executive Profile">
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- EXECUTIVE HERO BANNER -->
+    <div class="executive-banner">
+      <div class="banner-content">
+        <span class="banner-tag">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          Executive Summary
+        </span>
+        <h2>Global D2C Performance Analytics</h2>
+        <p>Real-time financial overview, categorical tracking, and channel profitability analysis for stakeholder review and strategic alignment.</p>
+      </div>
+    </div>
+
+    <!-- KPI CARDS SECTION -->
+    <div id="section-overview" class="scroll-section">
+      <div class="section-header">
+        <h2>Key Performance Indicators</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="kpi-grid" id="kpiGrid"></div>
+    </div>
+
+    <!-- REVENUE TREND SECTION -->
+    <div id="section-revenue" class="scroll-section">
+      <div class="section-header">
+        <h2>Revenue Trend</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Monthly Revenue Performance</div>
+            <div class="card-subtitle">Interactive: Hover over points to view exact revenue</div>
+          </div>
+          <div class="card-tag tag-indigo" id="peakMonthTag"></div>
+        </div>
+        <div class="card-body" id="chartContainer" style="padding-bottom:16px; position:relative;">
+          <canvas id="monthlyChart" height="180" style="width:100%;display:block;cursor:crosshair;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS & CATEGORIES SECTION -->
+    <div id="section-products" class="scroll-section">
+      <div class="section-header">
+        <h2>Category & Product Performance</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Category Revenue Breakdown</div>
+              <div class="card-subtitle">Click column headers to sort</div>
+            </div>
+            <div class="card-tag tag-indigo">4 Categories</div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="catTable">
+              <thead>
+                <tr>
+                  <th onclick="sortTable(0)">Category</th>
+                  <th class="td-num sort-desc" onclick="sortTable(1)">Total Revenue</th>
+                  <th class="td-num" onclick="sortTable(2)">Orders</th>
+                  <th class="td-num" onclick="sortTable(3)">Avg Order Value</th>
+                </tr>
+              </thead>
+              <tbody id="catTableBody"></tbody>
+            </table>
+          </div>
+          <div class="mini-stats" id="catMiniStats"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Top 5 Products by Revenue</div>
+              <div class="card-subtitle">Net revenue after discounts</div>
+            </div>
+            <div class="card-tag tag-emerald">Revenue Leaders</div>
+          </div>
+          <div class="card-body">
+            <div class="bar-chart" id="productBarChart"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS & CHANNELS SECTION -->
+    <div id="section-customers" class="scroll-section">
+      <div id="section-channels" class="scroll-section" style="scroll-margin-top: 100px;">
+        <div class="section-header">
+          <h2>Channel &amp; Customer Intelligence</h2>
+          <div class="section-divider"></div>
+        </div>
+        <div class="three-col">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Channel Performance</div>
+                <div class="card-subtitle">Revenue, orders &amp; average discount per channel</div>
+              </div>
+              <div class="card-tag tag-indigo">5 Channels</div>
+            </div>
+            <div class="card-body" id="channelList" style="padding-top:12px;"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Customer Segments</div>
+                <div class="card-subtitle">Revenue split · Gold / Silver / Bronze</div>
+              </div>
+            </div>
+            <div class="card-body" id="segmentList" style="padding-top:12px;"></div>
+            <div class="mini-stats" id="segMiniStats"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISCOUNT ANALYSIS SECTION -->
+    <div id="section-discounts" class="scroll-section">
+      <div class="section-header">
+        <h2>Discount Analysis by Channel</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="card" style="margin-bottom:32px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Average Discount Rate vs. Revenue Contribution</div>
+            <div class="card-subtitle">Higher discount does not always equate to higher revenue</div>
+          </div>
+          <div class="card-tag tag-amber">Efficiency View</div>
+        </div>
+        <div class="card-body" id="discountAnalysis"></div>
+      </div>
+    </div>
+
+    <!-- BUSINESS INSIGHTS -->
+    <div class="biz-insights" id="bizInsights"></div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+/* =====================================================================
+   DATA
+===================================================================== */
+const orders = [
+  {id:1001,date:"2024-11-23",cid:"C103",cat:"Haircare",prod:"Hair Mask",qty:2,ch:"Website",mrp:1047},
+  {id:1002,date:"2024-10-29",cid:"C113",cat:"Skincare",prod:"Sunscreen SPF50",qty:2,ch:"Amazon",mrp:1442},
+  {id:1003,date:"2024-04-11",cid:"C122",cat:"Makeup",prod:"Lipstick",qty:4,ch:"App",mrp:955},
+  {id:1004,date:"2024-12-23",cid:"C113",cat:"Haircare",prod:"Hair Mask",qty:3,ch:"Website",mrp:1047},
+  {id:1005,date:"2024-07-02",cid:"C127",cat:"Wellness",prod:"Collagen Supplement",qty:4,ch:"Website",mrp:1453},
+  {id:1006,date:"2024-10-09",cid:"C109",cat:"Wellness",prod:"Ashwagandha",qty:2,ch:"App",mrp:1410},
+  {id:1007,date:"2024-05-28",cid:"C102",cat:"Skincare",prod:"Face Wash",qty:3,ch:"App",mrp:1215},
+  {id:1008,date:"2024-07-08",cid:"C111",cat:"Skincare",prod:"Night Cream",qty:2,ch:"App",mrp:1488},
+  {id:1009,date:"2024-08-24",cid:"C112",cat:"Haircare",prod:"Conditioner",qty:1,ch:"Instagram",mrp:1395},
+  {id:1010,date:"2024-07-24",cid:"C108",cat:"Wellness",prod:"Vitamin D3",qty:4,ch:"App",mrp:1449},
+  {id:1011,date:"2024-05-15",cid:"C104",cat:"Wellness",prod:"Ashwagandha",qty:4,ch:"Instagram",mrp:1410},
+  {id:1012,date:"2024-04-22",cid:"C104",cat:"Skincare",prod:"Vitamin C Serum",qty:1,ch:"WhatsApp",mrp:1813},
+  {id:1013,date:"2024-11-01",cid:"C102",cat:"Makeup",prod:"Eyeliner",qty:3,ch:"Website",mrp:1426},
+  {id:1014,date:"2024-12-15",cid:"C128",cat:"Wellness",prod:"Collagen Supplement",qty:3,ch:"Website",mrp:1453},
+  {id:1015,date:"2024-05-14",cid:"C116",cat:"Skincare",prod:"Moisturizer",qty:5,ch:"Instagram",mrp:1358},
+  {id:1016,date:"2024-03-23",cid:"C117",cat:"Skincare",prod:"Night Cream",qty:3,ch:"Instagram",mrp:1488},
+  {id:1017,date:"2024-06-06",cid:"C107",cat:"Skincare",prod:"Vitamin C Serum",qty:4,ch:"App",mrp:1813},
+  {id:1018,date:"2024-03-06",cid:"C121",cat:"Haircare",prod:"Conditioner",qty:5,ch:"App",mrp:1395},
+  {id:1019,date:"2024-10-03",cid:"C124",cat:"Wellness",prod:"Probiotic Blend",qty:3,ch:"WhatsApp",mrp:1441},
+  {id:1020,date:"2024-03-02",cid:"C107",cat:"Wellness",prod:"Collagen Supplement",qty:5,ch:"App",mrp:1453},
+  {id:1021,date:"2024-01-04",cid:"C102",cat:"Haircare",prod:"Shampoo 250ml",qty:1,ch:"Amazon",mrp:2169},
+  {id:1022,date:"2024-05-01",cid:"C108",cat:"Haircare",prod:"Hair Oil",qty:2,ch:"Amazon",mrp:777},
+  {id:1023,date:"2024-08-30",cid:"C107",cat:"Makeup",prod:"Lipstick",qty:1,ch:"Instagram",mrp:955},
+  {id:1024,date:"2024-08-04",cid:"C113",cat:"Skincare",prod:"Vitamin C Serum",qty:4,ch:"App",mrp:1813},
+  {id:1025,date:"2024-04-08",cid:"C106",cat:"Haircare",prod:"Scalp Serum",qty:2,ch:"Website",mrp:529},
+  {id:1026,date:"2024-08-14",cid:"C125",cat:"Skincare",prod:"Vitamin C Serum",qty:5,ch:"App",mrp:1813},
+  {id:1027,date:"2024-03-26",cid:"C113",cat:"Haircare",prod:"Scalp Serum",qty:1,ch:"WhatsApp",mrp:529},
+  {id:1028,date:"2024-05-15",cid:"C129",cat:"Wellness",prod:"Probiotic Blend",qty:5,ch:"App",mrp:1441},
+  {id:1029,date:"2024-04-07",cid:"C109",cat:"Skincare",prod:"Moisturizer",qty:1,ch:"Amazon",mrp:1358},
+  {id:1030,date:"2024-09-28",cid:"C105",cat:"Skincare",prod:"Sunscreen SPF50",qty:1,ch:"WhatsApp",mrp:1442},
+  {id:1031,date:"2024-03-02",cid:"C130",cat:"Haircare",prod:"Hair Oil",qty:5,ch:"WhatsApp",mrp:777},
+  {id:1032,date:"2024-12-02",cid:"C118",cat:"Wellness",prod:"Omega 3",qty:2,ch:"App",mrp:1161},
+  {id:1033,date:"2024-05-15",cid:"C112",cat:"Makeup",prod:"Foundation",qty:1,ch:"Amazon",mrp:171},
+  {id:1034,date:"2024-02-21",cid:"C102",cat:"Wellness",prod:"Vitamin D3",qty:3,ch:"Instagram",mrp:1449},
+  {id:1035,date:"2024-05-25",cid:"C105",cat:"Wellness",prod:"Ashwagandha",qty:5,ch:"Instagram",mrp:1410},
+  {id:1036,date:"2024-12-05",cid:"C103",cat:"Wellness",prod:"Collagen Supplement",qty:1,ch:"Instagram",mrp:1453},
+  {id:1037,date:"2024-05-24",cid:"C119",cat:"Haircare",prod:"Conditioner",qty:5,ch:"Website",mrp:1395},
+  {id:1038,date:"2024-11-20",cid:"C113",cat:"Skincare",prod:"Vitamin C Serum",qty:3,ch:"App",mrp:1813},
+  {id:1039,date:"2024-08-14",cid:"C117",cat:"Skincare",prod:"Vitamin C Serum",qty:1,ch:"Amazon",mrp:1813},
+  {id:1040,date:"2024-01-19",cid:"C126",cat:"Haircare",prod:"Scalp Serum",qty:2,ch:"Website",mrp:529},
+  {id:1041,date:"2024-07-02",cid:"C106",cat:"Skincare",prod:"Moisturizer",qty:5,ch:"Amazon",mrp:1358},
+  {id:1042,date:"2024-03-20",cid:"C129",cat:"Haircare",prod:"Hair Mask",qty:4,ch:"WhatsApp",mrp:1047},
+  {id:1043,date:"2024-12-08",cid:"C127",cat:"Wellness",prod:"Vitamin D3",qty:1,ch:"WhatsApp",mrp:1449},
+  {id:1044,date:"2024-04-23",cid:"C106",cat:"Wellness",prod:"Omega 3",qty:2,ch:"WhatsApp",mrp:1161},
+  {id:1045,date:"2024-06-17",cid:"C108",cat:"Wellness",prod:"Omega 3",qty:5,ch:"Instagram",mrp:1161},
+  {id:1046,date:"2024-01-15",cid:"C103",cat:"Haircare",prod:"Hair Oil",qty:3,ch:"WhatsApp",mrp:777},
+  {id:1047,date:"2024-06-25",cid:"C123",cat:"Makeup",prod:"Eyeliner",qty:5,ch:"App",mrp:1426},
+  {id:1048,date:"2024-05-10",cid:"C101",cat:"Skincare",prod:"Night Cream",qty:5,ch:"Instagram",mrp:1488},
+  {id:1049,date:"2024-08-08",cid:"C102",cat:"Wellness",prod:"Collagen Supplement",qty:3,ch:"Instagram",mrp:1453},
+  {id:1050,date:"2024-07-25",cid:"C122",cat:"Haircare",prod:"Hair Mask",qty:4,ch:"App",mrp:1047},
+];
+
+const pricing = {
+  "Vitamin C Serum":    {App:5,Website:8,Instagram:10,Amazon:18,WhatsApp:7},
+  "Sunscreen SPF50":    {App:5,Website:10,Instagram:12,Amazon:20,WhatsApp:8},
+  "Moisturizer":        {App:0,Website:5,Instagram:8,Amazon:15,WhatsApp:5},
+  "Face Wash":          {App:0,Website:5,Instagram:5,Amazon:12,WhatsApp:0},
+  "Night Cream":        {App:5,Website:8,Instagram:10,Amazon:18,WhatsApp:5},
+  "Hair Mask":          {App:10,Website:12,Instagram:15,Amazon:22,WhatsApp:10},
+  "Conditioner":        {App:5,Website:8,Instagram:10,Amazon:18,WhatsApp:8},
+  "Shampoo 250ml":      {App:0,Website:5,Instagram:5,Amazon:12,WhatsApp:0},
+  "Scalp Serum":        {App:5,Website:5,Instagram:8,Amazon:15,WhatsApp:5},
+  "Hair Oil":           {App:0,Website:8,Instagram:10,Amazon:20,WhatsApp:5},
+  "Collagen Supplement":{App:10,Website:12,Instagram:15,Amazon:20,WhatsApp:10},
+  "Vitamin D3":         {App:5,Website:8,Instagram:10,Amazon:18,WhatsApp:8},
+  "Omega 3":            {App:5,Website:10,Instagram:12,Amazon:20,WhatsApp:8},
+  "Probiotic Blend":    {App:8,Website:10,Instagram:12,Amazon:18,WhatsApp:8},
+  "Ashwagandha":        {App:5,Website:8,Instagram:10,Amazon:15,WhatsApp:5},
+  "Lipstick":           {App:5,Website:10,Instagram:15,Amazon:20,WhatsApp:10},
+  "Eyeliner":           {App:5,Website:8,Instagram:12,Amazon:18,WhatsApp:8},
+  "Foundation":         {App:10,Website:12,Instagram:15,Amazon:22,WhatsApp:10},
+};
+
+const customers = {
+  C101:"Gold",C102:"Gold",C103:"Gold",C104:"Gold",C105:"Gold",C106:"Gold",C107:"Gold",C108:"Gold",
+  C109:"Silver",C111:"Silver",C112:"Silver",C113:"Silver",C116:"Silver",C117:"Silver",C118:"Silver",C119:"Silver",C121:"Silver",C122:"Silver",
+  C123:"Bronze",C124:"Bronze",C125:"Bronze",C126:"Bronze",C127:"Bronze",C128:"Bronze",C129:"Bronze",C130:"Bronze",
+};
+
+/* Soft Contrast Palette Mapping */
+const CAT_COLORS = { Skincare:"#6366F1",Wellness:"#10B981",Haircare:"#F59E0B",Makeup:"#F43F5E" };
+const CH_ICONS = {App:"📱",Amazon:"📦",Instagram:"📸",Website:"🌐",WhatsApp:"💬"};
+const CH_COLORS = {App:"#6366F1",Instagram:"#E1306C",Website:"#0EA5E9",WhatsApp:"#10B981",Amazon:"#F59E0B"};
+const SEG_COLORS = {Gold:"#F59E0B",Silver:"#64748B",Bronze:"#D97706"};
+
+/* =====================================================================
+   CALCULATIONS
+===================================================================== */
+function disc(prod,ch){ return (pricing[prod]||{})[ch]||0; }
+function rev(o){ return o.qty * o.mrp * (1 - disc(o.prod,o.ch)/100); }
+
+const enriched = orders.map(o=>({
+  ...o,
+  discount: disc(o.prod,o.ch),
+  revenue:  Math.round(rev(o)*100)/100,
+  segment:  customers[o.cid]||"Unknown",
+  month:    o.date.slice(0,7),
+}));
+
+const totalRev   = enriched.reduce((s,o)=>s+o.revenue,0);
+const totalOrders= enriched.length;
+const avgOV      = totalRev/totalOrders;
+
+// Product revenue
+const prodMap = {};
+enriched.forEach(o=>{ prodMap[o.prod]=(prodMap[o.prod]||0)+o.revenue; });
+const prodRevArr = Object.entries(prodMap).sort((a,b)=>b[1]-a[1]);
+const topProd = prodRevArr[0];
+
+// Category stats
+const catMap = {};
+enriched.forEach(o=>{
+  if(!catMap[o.cat]) catMap[o.cat]={rev:0,orders:0};
+  catMap[o.cat].rev   += o.revenue;
+  catMap[o.cat].orders++;
+});
+const catArr = Object.entries(catMap).map(([cat,d])=>({
+  cat, rev:Math.round(d.rev*100)/100, orders:d.orders,
+  aov:Math.round(d.rev/d.orders*100)/100
+})).sort((a,b)=>b.rev-a.rev);
+const topCat  = catArr[0];
+const topAOV  = [...catArr].sort((a,b)=>b.aov-a.aov)[0];
+
+// Channel stats
+const chMap = {};
+enriched.forEach(o=>{
+  if(!chMap[o.ch]) chMap[o.ch]={rev:0,orders:0,discSum:0};
+  chMap[o.ch].rev     += o.revenue;
+  chMap[o.ch].orders++;
+  chMap[o.ch].discSum += o.discount;
+});
+const chArr = Object.entries(chMap).map(([ch,d])=>({
+  ch, rev:Math.round(d.rev*100)/100, orders:d.orders,
+  avgDisc:Math.round(d.discSum/d.orders*100)/100
+})).sort((a,b)=>b.rev-a.rev);
+const topCh = chArr[0];
+const highDiscCh = [...chArr].sort((a,b)=>b.avgDisc-a.avgDisc)[0];
+
+// Monthly
+const monthMap = {};
+enriched.forEach(o=>{ monthMap[o.month]=(monthMap[o.month]||0)+o.revenue; });
+const MONTHS = ["2024-01","2024-02","2024-03","2024-04","2024-05","2024-06",
+                "2024-07","2024-08","2024-09","2024-10","2024-11","2024-12"];
+const monthlyRevs = MONTHS.map(m=>Math.round((monthMap[m]||0)*100)/100);
+const peakMonthIdx = monthlyRevs.indexOf(Math.max(...monthlyRevs));
+const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// Segment
+const segMap = {};
+enriched.forEach(o=>{
+  const s=o.segment;
+  if(!segMap[s]) segMap[s]={rev:0,orders:0};
+  segMap[s].rev+=o.revenue; segMap[s].orders++;
+});
+const segArr=[["Gold","Silver","Bronze"]].flat().map(s=>({
+  seg:s, rev:Math.round((segMap[s]||{rev:0}).rev*100)/100,
+  orders:(segMap[s]||{orders:0}).orders
+}));
+
+/* =====================================================================
+   FORMATTERS
+===================================================================== */
+const INR = v => "₹"+v.toLocaleString("en-IN",{minimumFractionDigits:0,maximumFractionDigits:0});
+
+/* =====================================================================
+   KPI CARDS
+===================================================================== */
+function buildKPIs(){
+  const cards = [
+    {label:"Total Revenue",    val:INR(Math.round(totalRev)), sub:"FY 2024 net of discounts", color:"indigo",
+     icon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm1 14.93V18h-2v-1.07A4 4 0 018 13h2a2 2 0 002 2 2 2 0 002-2c0-1.12-.61-1.67-2-2.33C9.72 9.67 8 8.9 8 7a4 4 0 013-3.87V2h2v1.13A4 4 0 0116 7h-2a2 2 0 00-2-2 2 2 0 00-2 2c0 .94.55 1.48 2 2.2 2.28.93 4 1.71 4 3.8a4 4 0 01-3 3.93z"/></svg>'},
+    {label:"Total Orders",     val:"50",                       sub:"Across all channels & categories", color:"emerald",
+     icon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a1 1 0 110 2 1 1 0 010-2zm3 13H9v-1a3 3 0 016 0v1zm2-6H7v-2h10v2z"/></svg>'},
+    {label:"Avg Order Value",  val:INR(Math.round(avgOV)),     sub:"Revenue per order", color:"amber",
+     icon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3zM3 7h12v2H3zM3 11h18v2H3zM3 15h12v2H3zM3 19h18v2H3z"/></svg>'},
+    {label:"Top Revenue Product", val:topProd[0], sub:INR(Math.round(topProd[1]))+" generated", color:"purple", small:true,
+     icon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>'},
+    {label:"Top Category", val:topCat.cat, sub:INR(Math.round(topCat.rev))+" · "+topCat.orders+" orders", color:"teal", small:true,
+     icon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 3H4a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1zm10 10h-6a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1zM10 13H4a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1zM20 3h-6a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1z"/></svg>'},
+    {label:"Top Discount Channel", val:highDiscCh.ch, sub:highDiscCh.avgDisc+"% avg discount rate", color:"rose", small:true,
+     icon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.79 2.96L21 11.17 11.17 21 2.96 12.79C1.07 10.9 1.07 7.86 2.96 5.97l3.01-3.01c1.89-1.89 4.93-1.89 6.82 0z"/></svg>'},
+  ];
+  const grid = document.getElementById("kpiGrid");
+  grid.innerHTML = cards.map(c=>`
+    <div class="kpi-card ${c.color}">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value ${c.small?'small':''}">${c.val}</div>
+      <div class="kpi-sub">${c.sub}</div>
+      <div class="kpi-icon">${c.icon}</div>
+    </div>
+  `).join('');
+}
+
+/* =====================================================================
+   INTERACTIVE MONTHLY CHART (Canvas)
+===================================================================== */
+function buildMonthlyChart() {
+  const canvas = document.getElementById("monthlyChart");
+  const ctx = canvas.getContext("2d");
+  const container = document.getElementById("chartContainer");
+  const tag = document.getElementById("peakMonthTag");
+
+  tag.textContent = "Peak: " + MONTH_LABELS[peakMonthIdx] + " " + INR(Math.round(monthlyRevs[peakMonthIdx]));
+
+  // Setup Dynamic Tooltip
+  let tooltip = document.getElementById("chartTooltip");
+  if (!tooltip) {
+    tooltip = document.createElement("div");
+    tooltip.id = "chartTooltip";
+    tooltip.style.position = "absolute";
+    tooltip.style.background = "#1E293B";
+    tooltip.style.color = "#fff";
+    tooltip.style.padding = "6px 12px";
+    tooltip.style.borderRadius = "6px";
+    tooltip.style.fontSize = "13px";
+    tooltip.style.fontWeight = "700";
+    tooltip.style.pointerEvents = "none";
+    tooltip.style.opacity = "0";
+    tooltip.style.transition = "opacity 0.2s, transform 0.1s";
+    tooltip.style.transform = "translate(-50%, -100%)";
+    tooltip.style.zIndex = "10";
+    tooltip.style.whiteSpace = "nowrap";
+    tooltip.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.1)";
+    container.appendChild(tooltip);
+  }
+
+  // Increased top padding so highest peaks are completely safe
+  const pad = { top: 40, right: 24, bottom: 30, left: 24 };
+  let W, H, cw, ch, step, xs, ys;
+  let hoverIndex = -1;
+
+  function resizeAndDraw() {
+    W = container.offsetWidth;
+    H = 200; 
+    canvas.width = W * window.devicePixelRatio;
+    canvas.height = H * window.devicePixelRatio;
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    cw = W - pad.left - pad.right;
+    ch = H - pad.top - pad.bottom;
+
+    // Add 10% headroom to maxV so the top point never hits the ceiling
+    const maxV = Math.max(...monthlyRevs) * 1.1; 
+
+    step = cw / (MONTHS.length - 1);
+    xs = MONTHS.map((_, i) => pad.left + i * step);
+    ys = monthlyRevs.map(v => pad.top + ch - (v / maxV) * ch);
+
+    drawChart();
+  }
+
+  function drawChart() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid lines
+    [0, 0.5, 1].forEach(t => {
+      const y = pad.top + ch * (1 - t);
+      ctx.beginPath();
+      ctx.strokeStyle = "#E5E7EB";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.moveTo(pad.left, y); 
+      ctx.lineTo(pad.left + cw, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    // Area fill gradient
+    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ch);
+    grad.addColorStop(0, "rgba(99, 102, 241, 0.25)");
+    grad.addColorStop(1, "rgba(99, 102, 241, 0.0)");
+
+    ctx.beginPath();
+    ctx.moveTo(xs[0], ys[0]);
+    for (let i = 1; i < xs.length; i++) {
+      const cpx = (xs[i - 1] + xs[i]) / 2;
+      ctx.bezierCurveTo(cpx, ys[i - 1], cpx, ys[i], xs[i], ys[i]);
+    }
+    ctx.lineTo(xs[xs.length - 1], pad.top + ch);
+    ctx.lineTo(xs[0], pad.top + ch);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Chart Line
+    ctx.beginPath();
+    ctx.moveTo(xs[0], ys[0]);
+    for (let i = 1; i < xs.length; i++) {
+      const cpx = (xs[i - 1] + xs[i]) / 2;
+      ctx.bezierCurveTo(cpx, ys[i - 1], cpx, ys[i], xs[i], ys[i]);
+    }
+    ctx.strokeStyle = "#6366F1";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // X-Axis Text Labels directly on canvas (guarantees perfect alignment)
+    ctx.fillStyle = "#6B7280";
+    ctx.font = "600 11.5px Inter, sans-serif";
+    ctx.textAlign = "center";
+    xs.forEach((x, i) => {
+      ctx.fillText(MONTH_LABELS[i], x, pad.top + ch + 20);
+    });
+
+    // Dots (Highlighted if hovered)
+    xs.forEach((x, i) => {
+      const y = ys[i];
+      const isHovered = i === hoverIndex;
+
+      ctx.beginPath();
+      ctx.arc(x, y, isHovered ? 6 : 4, 0, Math.PI * 2);
+      ctx.fillStyle = isHovered ? "#4F46E5" : "#fff";
+      ctx.strokeStyle = "#6366F1";
+      ctx.lineWidth = isHovered ? 3 : 2;
+      ctx.fill(); 
+      ctx.stroke();
+    });
+  }
+
+  // Hover Interaction Logic
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = (e.clientX - rect.left) * (W / rect.width);
+
+    // Find closest data point horizontally
+    let closestIdx = 0;
+    let minDist = Infinity;
+    xs.forEach((x, i) => {
+      const dist = Math.abs(x - mouseX);
+      if (dist < minDist) {
+        minDist = dist;
+        closestIdx = i;
+      }
+    });
+
+    // Snap if mouse is near a point
+    if (minDist < step / 1.5) {
+      if (hoverIndex !== closestIdx) {
+        hoverIndex = closestIdx;
+        drawChart();
+
+        // Map canvas coordinates to CSS coordinates for the tooltip
+        const cssX = xs[closestIdx] / (W / rect.width);
+        const cssY = ys[closestIdx] / (H / rect.height);
+
+        tooltip.innerHTML = `${MONTH_LABELS[closestIdx]}: <span style="color:#A5B4FC">${INR(Math.round(monthlyRevs[closestIdx]))}</span>`;
+        tooltip.style.opacity = "1";
+        tooltip.style.left = `${cssX}px`;
+        tooltip.style.top = `${cssY - 14}px`;
+      }
+    } else {
+      if (hoverIndex !== -1) {
+        hoverIndex = -1;
+        drawChart();
+        tooltip.style.opacity = "0";
+      }
+    }
+  });
+
+  canvas.addEventListener("mouseleave", () => {
+    hoverIndex = -1;
+    drawChart();
+    tooltip.style.opacity = "0";
+  });
+
+  resizeAndDraw();
+  window.addEventListener("resize", resizeAndDraw);
+}
+
+/* =====================================================================
+   CATEGORY TABLE
+===================================================================== */
+let sortCol=1, sortDir=-1;
+function sortTable(col){
+  const ths=document.querySelectorAll("#catTable th");
+  ths.forEach((th,i)=>{
+    th.classList.remove("sort-asc","sort-desc");
+    if(i===col) th.classList.add(sortDir*(col===sortCol?-1:1)>0?"sort-asc":"sort-desc");
+  });
+  if(col===sortCol) sortDir*=-1; else { sortCol=col; sortDir=-1; }
+  const sorted=[...catArr].sort((a,b)=>{
+    const vals=[a.cat,a.rev,a.orders,a.aov];
+    const bvals=[b.cat,b.rev,b.orders,b.aov];
+    if(typeof vals[col]==="string") return sortDir*vals[col].localeCompare(bvals[col]);
+    return sortDir*(vals[col]-bvals[col]);
+  });
+  renderCatTable(sorted);
+}
+
+function renderCatTable(arr){
+  const tbody=document.getElementById("catTableBody");
+  tbody.innerHTML=arr.map((c,i)=>`
+    <tr>
+      <td><span class="td-badge"><span class="cat-dot" style="background:${CAT_COLORS[c.cat]||'#999'}"></span>${c.cat}</span></td>
+      <td class="td-num">${INR(Math.round(c.rev))}</td>
+      <td class="td-num">${c.orders}</td>
+      <td class="td-num">${INR(Math.round(c.aov))}</td>
+    </tr>
+  `).join('');
+}
+
+function buildCatTable(){
+  renderCatTable(catArr);
+  const ms=document.getElementById("catMiniStats");
+  ms.innerHTML=`
+    <div class="mini-stat"><div class="mini-stat-val">${catArr.length}</div><div class="mini-stat-lbl">Categories</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">${INR(Math.round(totalRev))}</div><div class="mini-stat-lbl">Total Revenue</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">${topAOV.cat}</div><div class="mini-stat-lbl">Highest AOV</div></div>
+  `;
+}
+
+/* =====================================================================
+   PRODUCT BAR CHART
+===================================================================== */
+function buildProductBars(){
+  const top5=prodRevArr.slice(0,5);
+  const maxRev=top5[0][1];
+  const COLORS=["#6366F1","#818CF8","#A5B4FC","#C7D2FE","#E0E7FF"];
+  const rankCls=["rank-1","rank-2","rank-3","rank-other","rank-other"];
+  const el=document.getElementById("productBarChart");
+  el.innerHTML=top5.map(([name,r],i)=>`
+    <div class="bar-row">
+      <span class="rank ${rankCls[i]}">${i+1}</span>
+      <div class="bar-label" title="${name}">${name}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:0%;background:${COLORS[i]}" data-pct="${Math.round(r/maxRev*100)}"></div>
+      </div>
+      <div class="bar-num">${INR(Math.round(r))}</div>
+    </div>
+  `).join('');
+  setTimeout(()=>{
+    el.querySelectorAll(".bar-fill").forEach(b=>{
+      b.style.width=b.dataset.pct+"%";
+    });
+  },200);
+}
+
+/* =====================================================================
+   CHANNEL LIST
+===================================================================== */
+function buildChannelList(){
+  const maxRev=chArr[0].rev;
+  const el=document.getElementById("channelList");
+  el.innerHTML=chArr.map((c,i)=>`
+    <div class="channel-item">
+      <div class="channel-icon" style="background:${CH_COLORS[c.ch]}15; color:${CH_COLORS[c.ch]};">${CH_ICONS[c.ch]}</div>
+      <div class="channel-meta">
+        <div class="channel-name">${c.ch}${i===0?'<span class="best-badge">Best</span>':''}</div>
+        <div class="channel-orders">${c.orders} orders · ${c.avgDisc}% avg discount</div>
+        <div class="disc-bar" style="width:${Math.round(c.rev/maxRev*100)}%;background:${CH_COLORS[c.ch]};"></div>
+      </div>
+      <div class="channel-right">
+        <div class="channel-rev">${INR(Math.round(c.rev))}</div>
+        <div class="channel-disc">${Math.round(c.rev/totalRev*100)}% share</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* =====================================================================
+   SEGMENTS
+===================================================================== */
+function buildSegments(){
+  const maxRev=Math.max(...segArr.map(s=>s.rev));
+  const el=document.getElementById("segmentList");
+  el.innerHTML=segArr.map(s=>`
+    <div class="seg-row">
+      <div class="seg-top">
+        <span class="seg-name" style="color:${SEG_COLORS[s.seg]}">${s.seg} Tier</span>
+        <span class="seg-rev">${INR(Math.round(s.rev))}</span>
+      </div>
+      <div class="seg-meta">${s.orders} orders · ${Math.round(s.rev/totalRev*100)}% of total revenue</div>
+      <div class="bar-track" style="margin-top:8px;">
+        <div class="bar-fill" style="width:0%;background:${SEG_COLORS[s.seg]};transition:width .7s ease;" data-pct="${Math.round(s.rev/maxRev*100)}"></div>
+      </div>
+    </div>
+  `).join('');
+  setTimeout(()=>{
+    el.querySelectorAll(".bar-fill").forEach(b=>b.style.width=b.dataset.pct+"%");
+  },300);
+  const ms=document.getElementById("segMiniStats");
+  ms.innerHTML=`
+    <div class="mini-stat"><div class="mini-stat-val">26</div><div class="mini-stat-lbl">Customers</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">8</div><div class="mini-stat-lbl">Gold Tier</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">10</div><div class="mini-stat-lbl">Silver Tier</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">8</div><div class="mini-stat-lbl">Bronze Tier</div></div>
+  `;
+}
+
+/* =====================================================================
+   DISCOUNT ANALYSIS
+===================================================================== */
+function buildDiscountAnalysis(){
+  const el=document.getElementById("discountAnalysis");
+  const maxRevPerOrder=Math.max(...chArr.map(c=>c.rev/c.orders));
+  const maxDisc=Math.max(...chArr.map(c=>c.avgDisc));
+
+  el.innerHTML=`
+    <div class="discount-grid">
+    ${chArr.map(c=>{
+      const revPerOrder=Math.round(c.rev/c.orders);
+      const eff=Math.round(revPerOrder/maxRevPerOrder*100);
+      const discPct=Math.round(c.avgDisc/maxDisc*100);
+      const discColor = c.avgDisc>12 ? '#F43F5E' : c.avgDisc>8 ? '#F59E0B' : '#10B981';
+      return `
+      <div class="discount-card">
+        <div style="font-size:26px;margin-bottom:8px;">${CH_ICONS[c.ch]}</div>
+        <div style="font-size:14px;font-weight:800;color:var(--text-main);margin-bottom:14px;">${c.ch}</div>
+        <div style="margin-bottom:12px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-sub);margin-bottom:4px;">Revenue/Order</div>
+          <div style="font-size:16px;font-weight:800;color:var(--indigo);">${INR(revPerOrder)}</div>
+          <div style="height:6px;background:var(--bg-main);border-radius:99px;margin-top:6px;overflow:hidden;">
+            <div style="height:100%;width:${eff}%;background:var(--indigo);border-radius:99px;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-sub);margin-bottom:4px;">Avg Discount</div>
+          <div style="font-size:16px;font-weight:800;color:${discColor};">${c.avgDisc}%</div>
+          <div style="height:6px;background:var(--bg-main);border-radius:99px;margin-top:6px;overflow:hidden;">
+            <div style="height:100%;width:${discPct}%;background:${discColor};border-radius:99px;"></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+    </div>
+    <div style="margin-top:20px;padding:16px 20px;background:#EEF2FF;border-radius:12px;border-left:4px solid var(--indigo);">
+      <span style="font-size:13.5px;color:#374151;line-height:1.6;">
+        <strong style="color:var(--indigo); font-size:14px;">Insight:</strong>
+        The <strong>App channel</strong> delivers the highest revenue per order (${INR(Math.round(chArr.find(c=>c.ch==="App").rev/chArr.find(c=>c.ch==="App").orders))})
+        with only ${chArr.find(c=>c.ch==="App").avgDisc}% average discount — proving high efficiency.
+        Conversely, <strong>Amazon</strong> carries the steepest discount (${highDiscCh.avgDisc}%) yet contributes the least revenue,
+        suggesting a needed reassessment of the Amazon pricing strategy.
+      </span>
+    </div>
+  `;
+}
+
+/* =====================================================================
+   BUSINESS INSIGHTS
+===================================================================== */
+function buildBizInsights(){
+  const el=document.getElementById("bizInsights");
+  const appShare=Math.round(chArr.find(c=>c.ch==="App").rev/totalRev*100);
+  const mayRev=monthlyRevs[4];
+  const mayShare=Math.round(mayRev/totalRev*100);
+  el.innerHTML=`
+    <div class="biz-insights-header">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="#818CF8"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      <h2>Automated Business Insights</h2>
+      <span>FY 2024 · AI-Generated Summary</span>
+    </div>
+    <div class="insights-bullets">
+      <div class="ins-bullet">
+        <div class="ins-bullet-label">🏆 Top Category</div>
+        <div class="ins-bullet-val ins-accent">Wellness</div>
+        <div class="ins-bullet-note">Leading with ${INR(Math.round(catArr.find(c=>c.cat==="Wellness").rev))} across 16 orders. Closely followed by Skincare at ${INR(Math.round(catArr.find(c=>c.cat==="Skincare").rev))}.</div>
+      </div>
+      <div class="ins-bullet">
+        <div class="ins-bullet-label">⭐ Revenue Champion</div>
+        <div class="ins-bullet-val ins-accent">Vitamin C Serum</div>
+        <div class="ins-bullet-note">Generated ${INR(30730)} — ${Math.round(30730.35/totalRev*100)}% of all revenue. High MRP (₹1,813) drives its dominance.</div>
+      </div>
+      <div class="ins-bullet">
+        <div class="ins-bullet-label">📱 Strongest Channel</div>
+        <div class="ins-bullet-val ins-accent">App</div>
+        <div class="ins-bullet-note">Contributes ${appShare}% of total revenue (${INR(Math.round(topCh.rev))}) with only ${topCh.avgDisc}% discount — highest efficiency ratio.</div>
+      </div>
+      <div class="ins-bullet">
+        <div class="ins-bullet-label">💎 Highest Order Value</div>
+        <div class="ins-bullet-val ins-accent">Skincare</div>
+        <div class="ins-bullet-note">Average order value of ${INR(Math.round(topAOV.aov))} — premium pricing from Vitamin C Serum & Night Cream drives this metric.</div>
+      </div>
+      <div class="ins-bullet">
+        <div class="ins-bullet-label">📈 Revenue Spike</div>
+        <div class="ins-bullet-val ins-accent">May 2024</div>
+        <div class="ins-bullet-note">Highest single-month revenue at ${INR(Math.round(mayRev))} (${mayShare}% of annual). 9 orders placed — suggests seasonal demand or campaign push.</div>
+      </div>
+      <div class="ins-bullet">
+        <div class="ins-bullet-label">⚠️ Watch: Amazon</div>
+        <div class="ins-bullet-val" style="color:#FCA5A5;">Lowest ROI Channel</div>
+        <div class="ins-bullet-note">Highest avg discount at ${highDiscCh.avgDisc}% yet lowest revenue at ${INR(Math.round(chArr.find(c=>c.ch==="Amazon").rev))}. Reassess listing strategy.</div>
+      </div>
+    </div>
+  `;
+}
+
+/* =====================================================================
+   INTERACTIVITY & SCROLL SPY
+===================================================================== */
+
+function initInteractions() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('mobileOverlay');
+  const menuBtn = document.getElementById('menuToggle');
+  const navLinks = document.querySelectorAll('.nav-item');
+  const sections = document.querySelectorAll('.scroll-section');
+
+  // Mobile Menu Toggle
+  function toggleMenu() {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
+  menuBtn.addEventListener('click', toggleMenu);
+  overlay.addEventListener('click', toggleMenu);
+
+  // Smooth Scroll & Close Menu on Click
+  navLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href');
+      const targetSection = document.querySelector(targetId);
+
+      if(targetSection) {
+        targetSection.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      // Close mobile menu if open
+      if(sidebar.classList.contains('open')) {
+        toggleMenu();
+      }
+    });
+  });
+
+  // ScrollSpy - Update Active Nav Link on Scroll
+  window.addEventListener('scroll', () => {
+    let current = '';
+    const scrollY = window.pageYOffset;
+
+    sections.forEach(section => {
+      const sectionHeight = section.offsetHeight;
+      const sectionTop = section.offsetTop - 150; // Offset for header
+      if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+        current = section.getAttribute('id');
+      }
+    });
+
+    // Fallback for top of page
+    if(scrollY < 100) current = 'section-overview';
+
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === `#${current}`) {
+        link.classList.add('active');
+      }
+    });
+  });
+}
+
+/* =====================================================================
+   INIT
+===================================================================== */
+buildKPIs();
+buildCatTable();
+buildProductBars();
+buildChannelList();
+buildSegments();
+buildDiscountAnalysis();
+buildBizInsights();
+buildMonthlyChart();
+initInteractions();
+
+</script>
+</body>
+</html>
